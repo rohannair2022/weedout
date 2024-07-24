@@ -35,7 +35,7 @@ def split_data(target_name: str):
     return [features, target]
 
 
-# Imputing -> type 
+# Imputing (Filling Missing values) -> type 
 # Random Input (0) : Numerical: Mean, Categorical: Mode
 # Time Series Data Random(1): Numerical: Mean, Categorical: Mode
 # Time Series Data in Order (2): Numerical: Linear Interpolation, Categorical: Mode
@@ -58,4 +58,59 @@ def imputing(type: int, features: pd.DataFrame, target: pd.DataFrame) -> pd.Data
             else:
                 target[column] = target[column].fillna(mode(target[column]))
 
-def linear_interpolated_val()
+# Helper Function: Required for Imputation.
+# Recurssion for finding linear interpolated value:
+def linear_interpolated_val(target: pd.DataFrame, column: str, index: int):
+    """
+        Recursively find the linear interpolated value for a given index in a DataFrame column.
+
+        @target (pd.DataFrame): The input DataFrame.
+        @column (str): The name of the column to interpolate.
+        @index (int): The index of the value to interpolate.
+
+        @return(float): The interpolated value.
+
+        >>> df = pd.DataFrame({'A': [1.0, np.nan, np.nan, 4.0, 5.0, np.nan, 7.0]})
+        >>> linear_interpolated_val(df, 'A', 0)
+        1.0
+        >>> linear_interpolated_val(df, 'A', 1)
+        2.5
+        >>> linear_interpolated_val(df, 'A', 2)
+        2.5
+        >>> linear_interpolated_val(df, 'A', 6)
+        7.0
+    """
+    def recurse_search(index: int, type: str, max: int):
+        if type == "negative":
+            if(index == 0):
+                return 0
+            if pd.isna(target.iloc[index-1][column]):
+                return recurse_search(index-1, "negative", max)
+            else:
+                return target.iloc[index-1][column]
+        else:
+            if(index == max - 1):
+                return 0
+            if pd.isna(target.iloc[index+1][column]):
+                 return recurse_search(index+1, "positive", max)
+            else:
+                return target.iloc[index+1][column]
+
+    max = len(target)
+    if index == 0:
+        if not pd.isna(target.iloc[index][column]):
+            return target.iloc[index][column]
+        else:
+            return recurse_search(index, "positive", max)
+    elif index == max - 1:
+        if not pd.isna(target.iloc[index][column]):
+            return target.iloc[index][column]
+        else:
+            return recurse_search(index, "negative", max)
+    else:
+        return (recurse_search(index, "positive", max) + recurse_search(index, "negative", max))/2
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
