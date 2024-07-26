@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import os 
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -33,6 +33,21 @@ def split_data(file_path: str, target_name: str):
     target = data_frame[target_name]  
 
     return [features, target]
+
+
+def encoding(features: pd.DataFrame) -> None:
+    for column in features.columns:
+        if features[column].dtype == "object":
+            if features[column].nunique() > 3:
+                encoder = LabelEncoder()
+                features[column] = encoder.fit_transform(features[column])
+            else:
+                encoder = OneHotEncoder(sparse_output=False, drop='first')
+                encoded = encoder.fit_transform(features[[column]])
+                encoded_df = pd.DataFrame(encoded, columns=encoder.get_feature_names_out([column]), index=features.index)
+                features.drop(columns=[column], inplace=True)
+                features[encoded_df.columns] = encoded_df
+
 
 
 # Imputing (Filling Missing values) -> type 
