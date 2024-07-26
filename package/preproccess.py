@@ -22,12 +22,12 @@ def read_csv(file_path: str) -> pd.DataFrame:
 
 
 # Split the Dataset into the desired Features and Target.
-def split_data(target_name: str):
+def split_data(file_path: str, target_name: str):
     # Setting up the data frame
-    data_frame = read_csv('target_name')
+    data_frame = read_csv('file_path')
 
     # Feature Variables
-    features = data_frame(target_name, axis=1)  
+    features = data_frame.drop(target_name, axis=1)  
 
     # Target Variable 
     target = data_frame[target_name]  
