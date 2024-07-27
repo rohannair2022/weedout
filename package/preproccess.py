@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import os 
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -22,17 +22,32 @@ def read_csv(file_path: str) -> pd.DataFrame:
 
 
 # Split the Dataset into the desired Features and Target.
-def split_data(target_name: str):
+def split_data(file_path: str, target_name: str):
     # Setting up the data frame
-    data_frame = read_csv('target_name')
+    data_frame = read_csv('file_path')
 
     # Feature Variables
-    features = data_frame(target_name, axis=1)  
+    features = data_frame.drop(target_name, axis=1)  
 
     # Target Variable 
     target = data_frame[target_name]  
 
     return [features, target]
+
+# Encoding:
+# If the number of unique components in the object datatype column exceeds 3 then we do Label Encoding.
+def encoding(features: pd.DataFrame) -> None:
+    for column in features.columns:
+        if features[column].dtype == "object":
+            if features[column].nunique() > 3:
+                encoder = LabelEncoder()
+                features[column] = encoder.fit_transform(features[column])
+            else:
+                encoder = OneHotEncoder(sparse_output=False, drop='first')
+                encoded = encoder.fit_transform(features[[column]])
+                encoded_features = pd.DataFrame(encoded, columns=encoder.get_feature_names_out([column]), index=features.index)
+                features.drop(columns=[column], inplace=True)
+                features[encoded_features.columns] = encoded_features
 
 
 # Imputing (Filling Missing values) -> type 
