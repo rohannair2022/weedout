@@ -34,7 +34,8 @@ def split_data(file_path: str, target_name: str):
 
     return [features, target]
 
-
+# Encoding:
+# If the number of unique components in the object datatype column exceeds 3 then we do Label Encoding.
 def encoding(features: pd.DataFrame) -> None:
     for column in features.columns:
         if features[column].dtype == "object":
@@ -44,10 +45,9 @@ def encoding(features: pd.DataFrame) -> None:
             else:
                 encoder = OneHotEncoder(sparse_output=False, drop='first')
                 encoded = encoder.fit_transform(features[[column]])
-                encoded_df = pd.DataFrame(encoded, columns=encoder.get_feature_names_out([column]), index=features.index)
+                encoded_features = pd.DataFrame(encoded, columns=encoder.get_feature_names_out([column]), index=features.index)
                 features.drop(columns=[column], inplace=True)
-                features[encoded_df.columns] = encoded_df
-
+                features[encoded_features.columns] = encoded_features
 
 
 # Imputing (Filling Missing values) -> type 
