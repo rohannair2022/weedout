@@ -7,6 +7,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator, TransformerMixin
 from statistics import mode
+from typing import Literal
 
 
 # Initial Read for the CSV file from User
@@ -19,6 +20,17 @@ def read_csv(file_path: str) -> pd.DataFrame:
     # CSV File (Correct DataType)
     # Multiple same Feature names 
     # Missing Target variable name given by User
+
+
+# Type of Classfication: 0 - Binary | 1 - Multi
+def type_classification(type: int, df: pd.DataFrame, target: str) -> None:
+    return 0 if len(df[target].unique()) == 2 else 1
+
+# Balancing dataset:
+# We have to keep in mind that this would only be for Classfication and not Regression
+# Therefore we have two types of datasets to tackle: Binary classification and Multi-classification. 
+"""def balancing(type: int, df: pd.DataFrame) -> None:
+    if(not type):"""
 
 
 # Split the Dataset into the desired Features and Target.
@@ -34,7 +46,7 @@ def split_data(file_path: str, target_name: str):
 
     return [features, target]
 
-# Encoding:
+# Encoding -> Inplace:
 # If the number of unique components in the object datatype column exceeds 3 then we do Label Encoding.
 def encoding(features: pd.DataFrame) -> None:
     for column in features.columns:
@@ -50,81 +62,28 @@ def encoding(features: pd.DataFrame) -> None:
                 features[encoded_features.columns] = encoded_features
 
 
-# Imputing (Filling Missing values) -> type 
+
+# Imputing (Filling Missing values) -> Inplace:
 # Random Input (0) : Numerical: Mean, Categorical: Mode
-# Time Series Data Random(1): Numerical: Mean, Categorical: Mode
-# Time Series Data in Order (2): Numerical: Linear Interpolation, Categorical: Mode
+# Time Series Data in Order (1): Numerical: Linear Interpolation, Categorical: Mode
 # @ Linear Interpolation: Takes the average of the previous and next element. Implemented with inerpld.
-def imputing(type: int, features: pd.DataFrame, target: pd.DataFrame) -> pd.DataFrame:
-    if(type == 0 or type == 1):
-        for column in target.columns:
-            if target[column].dtype != "object":
-                mean_value = target[column].mean().astype('float32')
-                target[column] = target[column].fillna(mean_value)
+def imputing(type_impute: int, df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()  # Create a copy to avoid modifying the original DataFrame
+    if type_impute == 0:
+        for column in df.columns:
+            if pd.api.types.is_numeric_dtype(df[column]):
+                df[column] = df[column].fillna(df[column].mean())
             else:
-                target[column] = target[column].fillna(mode(target[column]))
-    else:   
-        for column in target.columns:
-            if target[column].dtype != "object":
-                for index, value in target[column].items():
-                    if pd.isna(value):
-                        imputed_value = linear_interpolated_val()
-                        target.at[index, column] = imputed_value
+                df[column] = df[column].fillna(df[column].mode()[0])
+    elif type_impute == 1:
+        for column in df.columns:
+            if pd.api.types.is_numeric_dtype(df[column]):
+                df[column] = df[column].interpolate(method='linear')
             else:
-                target[column] = target[column].fillna(mode(target[column]))
-
-# Helper Function: Required for Imputation.
-# Recurssion for finding linear interpolated value:
-def linear_interpolated_val(target: pd.DataFrame, column: str, index: int):
-    """
-        Recursively find the linear interpolated value for a given index in a DataFrame column.
-
-        @target (pd.DataFrame): The input DataFrame.
-        @column (str): The name of the column to interpolate.
-        @index (int): The index of the value to interpolate.
-
-        @return(float): The interpolated value.
-
-        >>> df = pd.DataFrame({'A': [1.0, np.nan, np.nan, 4.0, 5.0, np.nan, 7.0]})
-        >>> linear_interpolated_val(df, 'A', 0)
-        1.0
-        >>> linear_interpolated_val(df, 'A', 1)
-        2.5
-        >>> linear_interpolated_val(df, 'A', 2)
-        2.5
-        >>> linear_interpolated_val(df, 'A', 6)
-        7.0
-    """
-    def recurse_search(index: int, type: str, max: int):
-        if type == "negative":
-            if(index == 0):
-                return 0
-            if pd.isna(target.iloc[index-1][column]):
-                return recurse_search(index-1, "negative", max)
-            else:
-                return target.iloc[index-1][column]
-        else:
-            if(index == max - 1):
-                return 0
-            if pd.isna(target.iloc[index+1][column]):
-                 return recurse_search(index+1, "positive", max)
-            else:
-                return target.iloc[index+1][column]
-
-    max = len(target)
-    if index == 0:
-        if not pd.isna(target.iloc[index][column]):
-            return target.iloc[index][column]
-        else:
-            return recurse_search(index, "positive", max)
-    elif index == max - 1:
-        if not pd.isna(target.iloc[index][column]):
-            return target.iloc[index][column]
-        else:
-            return recurse_search(index, "negative", max)
+                df[column] = df[column].fillna(df[column].mode()[0])
     else:
-        return (recurse_search(index, "positive", max) + recurse_search(index, "negative", max))/2
-
+        raise ValueError("Invalid type. Expected 0, 1, or 2.")
+    return df
 
 if __name__ == "__main__":
     import doctest
