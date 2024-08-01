@@ -17,14 +17,23 @@
         background-repeat: no-repeat;
         background-attachment: fixed;
       }
+      .sm-text-center {
+        text-align: center !important;
+      }
+
+      @media (min-width: 768px) {
+        .md-text-start {
+          text-align: start !important;
+        }
+      }
     </style>
   </head>
   <body class="bg-dark text-white">
     <div class="container mt-5">
       <div class="row">
-        <div class="col-sm-6 mt-5 mb-3" style="font-family: Garmon">
+        <div class="col-sm-6 mt-5 py-4 mb-3" style="font-family: Garmon">
           <h3
-            class="text-shadow"
+            class="text-shadow sm-text-center md-text-start"
             style="
               color: white;
               text-shadow: 1px 1px 5px whitesmoke;
@@ -34,7 +43,7 @@
           >
             What is Weedout?
           </h3>
-          <h5 class="mb-5 pe-5">
+          <h5 class="mb-5 sm-text-center md-text-start">
             Introducing Weedout, the powerful and user-friendly data
             preprocessing library designed to streamline and enhance your
             machine learning workflow. Weedout automates the tedious tasks of
@@ -53,7 +62,7 @@
             projects.
           </h5>
           <h3
-            class="text-shadow"
+            class="text-shadow sm-text-center md-text-start"
             style="
               color: white;
               font-family: Verdana, Geneva, Tahoma, sans-serif;
@@ -63,7 +72,7 @@
           >
             Why Weedout?
           </h3>
-          <ul>
+          <ul class="sm-text-center md-text-start">
             <li class="h5">Effortless data cleaning</li>
             <li class="h5">Smart feature engineering</li>
             <li class="h5">Seamless integration with ML libraries</li>
@@ -72,7 +81,15 @@
           </ul>
         </div>
         <div class="col-sm-6 d-flex justify-content-center">
-          <div class="card" style="width: 400px">
+          <div
+            class="card"
+            style="
+              width: 400px;
+              background-color: rgba(255, 255, 255, 0.1);
+              backdrop-filter: blur(10px);
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            "
+          >
             <img
               src="{{ url_for('static', filename='logo.png') }}"
               class="card-img-top mx-4"
@@ -80,15 +97,15 @@
               style="width: 80%"
             />
             <div
-              class="card-body text-dark"
-              style="background-color: gainsboro"
+              class="card-body text-light"
+              style="background-color: rgba(0, 0, 0, 0.5)"
             >
               <h4
                 class="card-title"
                 style="
-                  color: #333;
+                  color: #fff;
                   font-weight: bold;
-                  text-shadow: 1px 1px 1px white;
+                  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
                 "
               >
                 Preprocess your dataset here!
@@ -98,7 +115,11 @@
                 {{ form.hidden_tag() }}
                 <div class="mb-3">
                   <label
-                    style="font-weight: bold; text-shadow: 1px 1px 1px white"
+                    style="
+                      font-weight: bold;
+                      color: #fff;
+                      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+                    "
                     >{{ form.data_type.label }}</label
                   ><br />
                   {% for subfield in form.data_type %} {{ subfield }} {{
@@ -109,7 +130,11 @@
                 </div>
                 <div class="mb-3">
                   <label
-                    style="font-weight: bold; text-shadow: 1px 1px 1px white"
+                    style="
+                      font-weight: bold;
+                      color: #fff;
+                      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+                    "
                     >{{ form.model_type.label }}</label
                   ><br />
                   {% for subfield in form.model_type %} {{ subfield }} {{
@@ -120,7 +145,11 @@
                 </div>
                 <div class="mb-3">
                   <label
-                    style="font-weight: bold; text-shadow: 1px 1px 1px white"
+                    style="
+                      font-weight: bold;
+                      color: #fff;
+                      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+                    "
                     >{{ form.sampling_response.label }}</label
                   ><br />
                   {% for subfield in form.sampling_response %} {{ subfield }} {{
@@ -131,7 +160,11 @@
                 </div>
                 <div class="mb-3">
                   <label
-                    style="font-weight: bold; text-shadow: 1px 1px 1px white"
+                    style="
+                      font-weight: bold;
+                      color: #fff;
+                      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+                    "
                     >{{ form.visualization_need.label }}</label
                   ><br />
                   {% for subfield in form.visualization_need %} {{ subfield }}
@@ -142,7 +175,11 @@
                 </div>
                 <div class="mb-4" data-bs-theme="dark">
                   <label
-                    style="font-weight: bold; text-shadow: 1px 1px 1px white"
+                    style="
+                      font-weight: bold;
+                      color: #fff;
+                      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+                    "
                     >{{ form.csv_file.label }}</label
                   ><br />
                   {{ form.csv_file }} {% for error in form.csv_file.errors %}
@@ -151,7 +188,10 @@
                   </div>
                   {% endfor %}
                 </div>
-                <div data-bs-theme="dark" class="mt-3 mb-2 d-grid gap-3">
+                <div
+                  class="mt-3 mb-2 d-grid"
+                  style="background-color: whitesmoke; border-radius: 95%"
+                >
                   {{ form.submit() }}
                 </div>
               </form>
