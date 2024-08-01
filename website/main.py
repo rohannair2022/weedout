@@ -1,4 +1,4 @@
-from flask import Flask, render_template, flash, redirect, url_for, session
+from flask import Flask, render_template, flash, redirect, url_for, session, send_file
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, SubmitField, RadioField
@@ -6,7 +6,11 @@ from wtforms.validators import DataRequired
 from flask_bootstrap import Bootstrap
 import pandas as pd
 import io
+from io import BytesIO
+import os
+import zipfile
 from contextlib import redirect_stdout
+import threading
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key'  
@@ -20,7 +24,11 @@ class NameForm(FlaskForm):
     csv_file = FileField('Upload CSV', validators=[FileAllowed(['csv'], 'CSV files only!')])
     submit = SubmitField('Submit')
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET'])
+def landing():
+    return render_template('landing.html')
+
+@app.route('/homepage', methods=['GET', 'POST'])
 def index():
     form = NameForm()
     if form.validate_on_submit():
@@ -36,6 +44,27 @@ def index():
             return redirect(url_for('result'))
     return render_template('index.html', form=form)
 
+
+@app.route('/download_zip')
+def download_zip():
+    memory_file = BytesIO()
+    
+    with zipfile.ZipFile(memory_file, 'w') as zf:
+        zf.writestr('example.txt', 'This is the content of the text file')
+        # Can add more files here
+        # zf.write('/path/to/file', 'filename_in_zip')
+    
+    # Move to the beginning of the BytesIO object
+    memory_file.seek(0)
+    
+    # Send the file for download
+    return send_file(
+        memory_file,
+        mimetype='application/zip',
+        as_attachment=True,
+        download_name='archive.zip'
+    )
+
 @app.route('/results', methods=['GET','POST'])
 def result():
     csv_content = session.get('csv_content')
@@ -48,7 +77,7 @@ def result():
     df_info = buffer.getvalue()
 
     #call preprocess function
-    # data_type: imputation
+    #data_type: imputation
     #call visulzation function
     
     return render_template('result.html', 
