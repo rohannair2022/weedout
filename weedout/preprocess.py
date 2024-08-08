@@ -248,49 +248,6 @@ def remove_outliers(df: pd.DataFrame) -> pd.DataFrame:
 
     return df_pre_processed
 
-def show_removed_outliers(df_original: pd.DataFrame, df_pre_processed: pd.DataFrame):
-    """
-        This is a visualization function to compare the boxplot spread of the original dataset and 
-        the processed dataset. 
-
-        @paramters:
-
-            df_original: pd.DataFrame
-                The dataframe for the original dataset.
-
-            df_preprocessed: pd.DataFrame
-                The dataframe for the preprocessed dataset.
-
-    """
-
-    sns.set(style="whitegrid")
-
-    # Get numerical columns
-    numerical_cols = df_original.select_dtypes(include=['int64', 'float64']).columns
-
-    # Define the figure and axes for the subplots
-    fig, axes = plt.subplots(nrows=2, ncols=len(numerical_cols), figsize=(50, 50), sharey=True)
-    
-    # Flatten the axes array for easy iteration
-    axes = axes.flatten()
-
-    # Plot box-plots for original and pre-processed dataframe
-    for i, column in enumerate(numerical_cols):
-        if i < len(axes) // 2:
-            sns.boxplot(data=df_original[column], ax=axes[i], palette="Set2")
-            axes[i].set_title(f'Original - {column}')
-        else:
-            sns.boxplot(data=df_pre_processed[column], ax=axes[i], palette="Set2")
-            axes[i].set_title(f'Pre-Processed - {column}')
-
-        axes[i].set_xlabel('')
-        axes[i].set_ylabel('')
-
-    # Adjust layout
-    plt.tight_layout()
-    plt.show()
-
-
 def separate_target_column(df: pd.DataFrame, target_variable: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
 
@@ -313,8 +270,8 @@ def separate_target_column(df: pd.DataFrame, target_variable: str) -> Tuple[pd.D
 
     """
     try:
-        target = df[target_column]
-        remaining_df = df.drop(columns=[target_column])
+        target = df[target_variable]
+        remaining_df = df.drop(columns=[target_variable])
         return remaining_df, target
     except:
         raise Exception('Target Column does not Exist. Please provide the right one.')
@@ -344,59 +301,6 @@ def filtered_correlation_matrix(df: pd.DataFrame):
     
     print("Initial VIF values: ")
     print(vif.sort_values(by="VIF", ascending=False))
-
-
-def plot_filtered_correlation_matrix(df: pd.DataFrame):
-    """
-        This function plots the correlation matrix of the features based on Variance Inflation Factor ( VIF = 1/(1-R^2) ) 
-        of each feature column. VIF is a strong indicator of multi-collinearity in our dataframe. 
-
-        Note: The user is expected to remove some of the correlated features based on the VIF value.
-
-        @parameter:
-
-            df : pd.DataFrame
-                The dataframe provided by user.
-    
-    """
-    numerical_columns = df.select_dtypes(include=['float64', 'int64'])
-    non_numerical_columns = df.select_dtypes(exclude=['float64', 'int64']).columns
-    print("Before: ", numerical_columns.shape)
-    
-    vif = pd.DataFrame()
-    vif['Feature'] = numerical_columns.columns
-    vif["VIF"] = [variance_inflation_factor(numerical_columns.values, i) for i in range(numerical_columns.shape[1])]
-    
-    print("Initial VIF values: ")
-    print(vif.sort_values(by="VIF", ascending=False))
-    
-    infinite_vif_features = vif[vif["VIF"] == np.inf]["Feature"].tolist()
-    if infinite_vif_features:
-        print(f"\nDropping columns with infinite VIF values: {infinite_vif_features}\n")
-        numerical_columns = numerical_columns.drop(columns=infinite_vif_features)
-        
-    max_vif = 10
-    remove_flag = True
-    
-    while remove_flag:
-        vif = pd.DataFrame()
-        vif['Feature'] = numerical_columns.columns
-        vif["VIF"] = [variance_inflation_factor(numerical_columns.values, i) for i in range(numerical_columns.shape[1])]
-        
-        max_vif_feature = vif.loc[vif['VIF'].idxmax()]
-        
-        if max_vif_feature['VIF'] > max_vif:
-            numerical_columns = numerical_columns.drop(max_vif_feature['Feature'], axis=1)
-            print(f"Removed variable with high VIF {max_vif_feature['Feature']} (VIF={max_vif_feature['VIF']})")
-        else:
-            remove_flag = False
-
-    print("After: ", numerical_columns.shape)
-    
-    plt.figure(figsize=(13,10))
-    plt.title("VIF")
-    sns.heatmap(numerical_columns.corr(),annot=True,fmt='0.2g',cmap='coolwarm',vmin=-1,vmax=1)
-    plt.show()
 
 
 def encoding(features: pd.DataFrame) -> pd.DataFrame:
@@ -541,12 +445,12 @@ def display(file_path: str ,df: pd.DataFrame) -> None:
     print("\nProcessed Data\n")
     processed_data.info()
 
-def preprocess_pipeline(file_path, target_column, untouched_columns, type_dataset, sampling):
-    total_steps = 9  # Total number of steps in the pipeline
+def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: List[str], type_dataset: int, sampling: int, classfication: int, strategy_sample="SMOTE"):
+    total_steps = 11  # Total number of steps in the pipeline
     progress_bar = tqdm(total=total_steps, desc="Pipeline Progress", unit="step")
     
     print("\nInitial Check")
-    df = initial_check_dt(file_path, target_column, untouched_columns)
+    df = initial_check_dt(file_path, target_column, dropped_columns)
     progress_bar.update(1)
     print("\n-----------------------------Initial check done-----------------------------------------------\n")
     
@@ -561,11 +465,15 @@ def preprocess_pipeline(file_path, target_column, untouched_columns, type_datase
         print("\n-----------------------------Time Series Imputation Done-----------------------------------------------\n")
 
     if sampling:
-        print("\nHandling Imbalanced Data")
-        df = handle_imbalanced_data(df, target_column)
-        progress_bar.update(1)
-        print("\n-----------------------------Balanced the data-----------------------------------------------\n")
-        
+        if classfication:
+            print("\nHandling Imbalanced Data")
+            df = handle_imbalanced_data(df, target_column, strategy_sample)
+            progress_bar.update(1)
+            print("\n-----------------------------Balanced the data-----------------------------------------------\n")
+        else:
+           print("\nCant Balance a Dataset for Regression Models")
+           print("\n-----------------------------Balanced the data-----------------------------------------------\n")
+
     print("\nRemoving Outliers")
     df = remove_outliers(df)
     progress_bar.update(1)
@@ -587,7 +495,7 @@ def preprocess_pipeline(file_path, target_column, untouched_columns, type_datase
     print("\n-----------------------------Encoded the data-----------------------------------------------\n")
     
     print("\nFeature Scaling")
-    preprocessed_df = feature_scaling(remaining_df, unscale_column)
+    preprocessed_df = feature_scaling(remaining_df, dropped_columns)
     progress_bar.update(1)
     print("\n-----------------------------Feature Scaling Done-----------------------------------------------\n")
     
@@ -603,12 +511,3 @@ def preprocess_pipeline(file_path, target_column, untouched_columns, type_datase
     
     progress_bar.close()
     return preprocessed_df
-
-file_path = '/kaggle/input/titanic/train.csv'
-target_column ='Survived'
-unscale_column='PassengerId'
-type_dataset = 0
-sampling = 0
-
-processed_data = preprocess_pipeline(file_path, target_column, type_dataset, sampling)
-data=pd.read_csv(file_path)
