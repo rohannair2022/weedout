@@ -163,7 +163,7 @@ def time_series_imputation(time_series_df: pd.DataFrame) -> pd.DataFrame:
 
 def handle_imbalanced_data(df: pd.DataFrame, target_variable: str, strategy = "smote", k_neighbors=2) -> pd.DataFrame:
     """
-        The function balances a dataframe defined through a given sampling stratergy to be
+        The function balances a dataframe defined through a given sampling strategy to be
         ran on a classfication model. 
 
         @paramters:
@@ -251,7 +251,7 @@ def remove_outliers(df: pd.DataFrame) -> pd.DataFrame:
 def show_removed_outliers(df_original: pd.DataFrame, df_pre_processed: pd.DataFrame):
     """
         This is a visualization function to compare the boxplot spread of the original dataset and 
-        the proccessed dataset. 
+        the processed dataset. 
 
         @paramters:
 
@@ -294,7 +294,7 @@ def show_removed_outliers(df_original: pd.DataFrame, df_pre_processed: pd.DataFr
 def separate_target_column(df: pd.DataFrame, target_variable: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
 
-        This function seperates the given target column from the dataframe.    
+        This function separates the given target column from the data frame.    
 
         @paramters:
 
@@ -323,11 +323,11 @@ def separate_target_column(df: pd.DataFrame, target_variable: str) -> Tuple[pd.D
 def filtered_correlation_matrix(df: pd.DataFrame):
     """
         This function prints the Variance Inflation Factor ( VIF = 1/(1-R^2) ) of each feature column. VIF 
-        is a strong indicator of multi-collinearity in our dataframe. 
+        is a strong indicator of multi-collinearity in our data frame. 
 
-        Note : The user is expected to remove some of the corelated features based on the VIF value.
+        Note : The user is expected to remove some of the correlated features based on the VIF value.
 
-        @paramater:
+        @parameter:
 
             df : pd.DataFrame
                 The dataframe provided by user.
@@ -348,12 +348,12 @@ def filtered_correlation_matrix(df: pd.DataFrame):
 
 def plot_filtered_correlation_matrix(df: pd.DataFrame):
     """
-        This function plots the correlation matrix of the features based onVariance Inflation Factor ( VIF = 1/(1-R^2) ) 
+        This function plots the correlation matrix of the features based on Variance Inflation Factor ( VIF = 1/(1-R^2) ) 
         of each feature column. VIF is a strong indicator of multi-collinearity in our dataframe. 
 
-        Note : The user is expected to remove some of the corelated features based on the VIF value.
+        Note: The user is expected to remove some of the correlated features based on the VIF value.
 
-        @paramater:
+        @parameter:
 
             df : pd.DataFrame
                 The dataframe provided by user.
@@ -401,13 +401,13 @@ def plot_filtered_correlation_matrix(df: pd.DataFrame):
 
 def encoding(features: pd.DataFrame) -> pd.DataFrame:
     """
-        The function is used to encode the object type columns in the given dataframe. If the number of
-        attributes in a column excede more than 3, then the function performs Label Encoding. If it does not, 
+        The function encodes the object type columns in the given data frame. If the number of
+        attributes in a column exceeds more than 3, then the function performs Label Encoding. If it does not, 
         then it performs One Hot Encoding. 
 
-        @paramters:
+        @parameters:
             features : str
-                The dataframe consiting of all the features (excluding target column).
+                The data frame consisting of all the features (excluding the target column).
         
         @return:
             pd.DataFrame:
@@ -430,7 +430,7 @@ def encoding(features: pd.DataFrame) -> pd.DataFrame:
 
 def feature_scaling(features: pd.DataFrame, unscale_columns: List[str]) -> pd.DataFrame:
     """
-        The function scales continous-numerical values of the dataset. If the values in the column have a normal
+        The function scales continuous-numerical values of the dataset. If the values in the column have a normal
         distribution then we do StandardScaling. If it does not, then we do MinMaxScaling
         Note : If the unique value count of the column is greater than 3, only then will the function apply 
         scaling to that column.
@@ -521,7 +521,7 @@ def combine (features: pd.DataFrame, target: pd.DataFrame) -> pd.DataFrame:
 
 def display(file_path: str ,df: pd.DataFrame) -> None:
     """
-        The function displays the info of the original dataset in the given filepath in comparission to
+        The function displays the info of the original dataset in the given file path in comparison to
         the preprocessed dataframe.
 
         @paramters:
