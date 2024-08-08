@@ -594,7 +594,7 @@ def preprocess_pipeline(file_path, target_column, untouched_columns, type_datase
     print("\nCombining Feature and Target")
     combined_df = combine(preprocessed_df,target)
     progress_bar.update(1)
-    print("\n-----------------------------Feature Scaling Done-----------------------------------------------\n")
+    print("\n-----------------------------Combining Features Done-----------------------------------------------\n")
     
 
     print("\nDisplaying the results")
