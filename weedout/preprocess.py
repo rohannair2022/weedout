@@ -554,11 +554,11 @@ def preprocess_pipeline(file_path, target_column, untouched_columns, type_datase
     if not type_dataset:
         df = cross_sectional_imputation(df)
         progress_bar.update(1)
-        print("\n-----------------------------Imputation Done-----------------------------------------------\n")
+        print("\n-----------------------------Cross Sectional Imputation Done-----------------------------------------------\n")
     elif type_dataset == 1:
         df = time_series_imputation(df)
         progress_bar.update(1)
-        print("\n-----------------------------Imputation Done-----------------------------------------------\n")
+        print("\n-----------------------------Time Series Imputation Done-----------------------------------------------\n")
 
     if sampling:
         print("\nHandling Imbalanced Data")
@@ -596,7 +596,6 @@ def preprocess_pipeline(file_path, target_column, untouched_columns, type_datase
     progress_bar.update(1)
     print("\n-----------------------------Combining Features Done-----------------------------------------------\n")
     
-
     print("\nDisplaying the results")
     display(file_path,combined_df)
     progress_bar.update(1)
