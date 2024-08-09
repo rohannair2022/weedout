@@ -16,6 +16,31 @@ from tqdm.notebook import tqdm
 from typing import List, Optional, Tuple
 import csv
 
+
+def check_target_variable(df: pd.DataFrame, target_name: str) -> bool:
+    """
+        The function returns true if the given target name exists in the dataframe. It returns false
+        if the target name is not in the dataframe. 
+
+        @paramters: 
+            df: pd.DataFrame
+                Given dataframe.
+            
+            target_name: str
+                Given target Name 
+        @return:
+
+            bool:
+                Indicates if target name exists of not.
+    """
+    seen = False 
+    for col in df.columns:
+        if col == target_name:
+            seen = True 
+            break 
+    return seen
+
+
 def check_duplicate_columns(file_path: str) -> List[str]:
     """
         The function checks if the dataset has multiple same column names.
@@ -148,6 +173,7 @@ def cross_sectional_imputation(cross_sectional_df: pd.DataFrame) -> pd.DataFrame
     for column in df.columns:
         if pd.api.types.is_numeric_dtype(df[column]):
             df[column] = df[column].fillna(df[column].mean())
+            df[column] = df[column].astype(float)
         else:
             df[column] = df[column].fillna(df[column].mode()[0])
     
@@ -162,6 +188,9 @@ def time_series_imputation(time_series_df: pd.DataFrame) -> pd.DataFrame:
         interpolation. For columns with string values, the null values of that column are imputed/filled
         with the mode (most frequent) value of that column. 
 
+        Note: If the first row contains a null value in the numerical column then the imputation will not 
+        work. 
+
         @parameters:
 
             time_series_df : pd.DataFrame:
@@ -173,12 +202,18 @@ def time_series_imputation(time_series_df: pd.DataFrame) -> pd.DataFrame:
                 It will return the imputed dataframe if the function is successful.
     """
     df = time_series_df.copy()
+
+    first_row = df.iloc[0]
+    has_nan_and_is_numeric = first_row.isnull() & first_row.apply(lambda x: isinstance(x, (float, int)))
+    if has_nan_and_is_numeric.any():
+        raise Exception('The first row cannot have a numeric null value.')
     
     print("Total Null value counts before imputation: \n",df.isnull().sum())
 
     for column in df.columns:
         if pd.api.types.is_numeric_dtype(df[column]):
             df[column] = df[column].interpolate(method='linear')
+            df[column] = df[column].astype(float)
         else:
             df[column] = df[column].fillna(df[column].mode()[0])
         
@@ -216,6 +251,9 @@ def handle_imbalanced_data(df: pd.DataFrame, target_variable: str, strategy = "s
     
     """
 
+    if not check_target_variable(df, target_variable):
+        raise Exception(f"The target variable '{target_variable}' is missing in the DataFrame.")
+
     if strategy == 'oversampling':
         sampler = RandomOverSampler()
     elif strategy == 'undersampling':
@@ -227,14 +265,12 @@ def handle_imbalanced_data(df: pd.DataFrame, target_variable: str, strategy = "s
     
     print(f'The distribution of the target column prior to sampling: {df[target_variable].value_counts}')
     
-    if target_variable not in df.columns:
-        raise Exception('Target Column not found in Dataframe')
 
-    X_res, y_res=separate_target_column(df,target_variable)
+    X_res, y_res= separate_target_column(df,target_variable)
     X_res, y_res = sampler.fit_resample(X_res, y_res)
     df_balanced = pd.concat([X_res, y_res], axis=1)
 
-    print(f'The distribution of the target column after sampling: {df[target_variable].value_counts}')
+    print(f'The distribution of the target column after sampling: {df_balanced[target_variable].value_counts}')
     
     return df_balanced
 
@@ -296,11 +332,21 @@ def separate_target_column(df: pd.DataFrame, target_variable: str) -> Tuple[pd.D
 
     """
     try:
+        if not isinstance(df, pd.DataFrame):
+            raise TypeError
+        
+        if not check_target_variable(df, target_variable):
+            raise ValueError
+
         target = df[target_variable]
         remaining_df = df.drop(columns=[target_variable])
         return remaining_df, target
-    except:
-        raise Exception('Target Column does not Exist. Please provide the right one.')
+    
+    except TypeError:
+        raise Exception('Please provide the right type of dataframe.')
+    
+    except ValueError:
+        raise Exception('Please provide a valid target name.')
 
 
 def filtered_correlation_matrix(df: pd.DataFrame):
