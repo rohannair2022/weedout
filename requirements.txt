@@ -10,3 +10,4 @@ tqdm==4.65.0
 typing
 nose
 coverage
+nose-spec
