@@ -151,5 +151,25 @@ class TestRemoveOutliers(unittest.TestCase):
         # Assert that the DataFrames are equal
         pd.testing.assert_frame_equal(rows_in_df1_not_in_df2, rows_to_check)
 
+class TestTargetColumn(unittest.TestCase):
+
+    def test_file_type(self):
+        df='tests_static/duplicateCSVFile.csv'
+        target_name = 'target'
+
+        with self.assertRaises(Exception) as context:
+            weedout.separate_target_column(df, target_name)
+
+        self.assertEqual(str(context.exception), "Data type error.Please provide the right type of dataframe.") 
+
+    def test_wrong_targetname(self):
+        df=pd.read_csv('tests_static/duplicateCSVFile.csv')
+        target_name = 'non_existent'
+
+        with self.assertRaises(Exception) as context:
+            weedout.separate_target_column(df,target_name)
+
+        self.assertEqual(str(context.exception), f"Target Column does not Exist. Please provide the right one.")
+
 if __name__ == '__main__':
     unittest.main()

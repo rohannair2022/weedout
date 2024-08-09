@@ -349,10 +349,10 @@ def separate_target_column(df: pd.DataFrame, target_variable: str) -> Tuple[pd.D
         return remaining_df, target
     
     except TypeError:
-        raise Exception('Please provide the right type of dataframe.')
+        raise Exception('Data type error.Please provide the right type of dataframe.')
     
     except ValueError:
-        raise Exception('Please provide a valid target name.')
+        raise Exception('Target Column does not Exist. Please provide the right one.')
 
 
 def filtered_correlation_matrix(df: pd.DataFrame):
