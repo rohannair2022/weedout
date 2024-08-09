@@ -344,7 +344,7 @@ def separate_target_column(df: pd.DataFrame, target_variable: str) -> Tuple[pd.D
         if not check_target_variable(df, target_variable):
             raise ValueError
 
-        target = df[target_variable]
+        target = df[[target_variable]]
         remaining_df = df.drop(columns=[target_variable])
         return remaining_df, target
     
@@ -370,7 +370,6 @@ def filtered_correlation_matrix(df: pd.DataFrame):
     """
 
     numerical_columns = df.select_dtypes(include=['float64', 'int64'])
-    non_numerical_columns = df.select_dtypes(exclude=['float64', 'int64']).columns
     print("Before: ", numerical_columns.shape)
     
     vif = pd.DataFrame()
@@ -395,17 +394,20 @@ def encoding(features: pd.DataFrame) -> pd.DataFrame:
             pd.DataFrame:
                 The dataframe consisting of all the encoded features. 
     """
+    print("Before encoding:", features.columns)
     for column in features.columns:
         if features[column].dtype == "object":
             if features[column].nunique() > 3:
                 encoder = LabelEncoder()
                 features[column] = encoder.fit_transform(features[column])
             else:
-                encoder = OneHotEncoder(sparse_output=False, drop='first')
+                encoder = OneHotEncoder(sparse_output=False)
                 encoded = encoder.fit_transform(features[[column]])
                 encoded_features = pd.DataFrame(encoded, columns=encoder.get_feature_names_out([column]), index=features.index)
                 features.drop(columns=[column], inplace=True)
                 features[encoded_features.columns] = encoded_features
+    
+    print("After encoding:", features.columns)
 
     return features
 
@@ -461,7 +463,9 @@ def feature_scaling(features: pd.DataFrame, unscale_columns: List[str]) -> pd.Da
                     scaler = StandardScaler()
                     df[col] = scaler.fit_transform(df[[col]])
                     Standardscaler_algorithms.append(col)
+
             else:
+
                 if unique_count > 3: 
                     scaler = MinMaxScaler()
                     df[col] = scaler.fit_transform(df[[col]])
@@ -474,8 +478,6 @@ def feature_scaling(features: pd.DataFrame, unscale_columns: List[str]) -> pd.Da
     df_scaled = pd.concat([df[numerical_columns], df[non_numerical_columns]], axis=1)
     
     df_scaled = df_scaled.reset_index(drop=True)
-            
-    print("\nScaled data\n")
 
     return df_scaled
 
@@ -496,10 +498,8 @@ def combine (features: pd.DataFrame, target: pd.DataFrame) -> pd.DataFrame:
                 The combined dataframe that consists of both the feature dataframe and the target dataframe.
     
     """
-    df = features.copy()
-    df[target.name] = target.values
-    return df 
-    
+    combined_df = pd.concat([features, target], axis=1)
+    return combined_df
 
 def display(file_path: str ,df: pd.DataFrame) -> None:
     """

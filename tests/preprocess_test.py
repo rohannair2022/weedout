@@ -151,7 +151,7 @@ class TestRemoveOutliers(unittest.TestCase):
         # Assert that the DataFrames are equal
         pd.testing.assert_frame_equal(rows_in_df1_not_in_df2, rows_to_check)
 
-class TestTargetColumn(unittest.TestCase):
+class TestSeperateTargetColumn(unittest.TestCase):
 
     def test_file_type(self):
         df='tests_static/duplicateCSVFile.csv'
@@ -170,6 +170,36 @@ class TestTargetColumn(unittest.TestCase):
             weedout.separate_target_column(df,target_name)
 
         self.assertEqual(str(context.exception), f"Target Column does not Exist. Please provide the right one.")
+
+    def test_regular_split(self):
+        pre_df = pd.read_csv('tests_static/regularCSVFile.csv')
+        target_name = 'target'
+        df, target= weedout.separate_target_column(pre_df, target_name)
+        self.assertEqual(['feature1','feature2','feature3'], df.columns.to_list())
+        self.assertEqual(['target'], target.columns.tolist() )
+
+class TestEncoding(unittest.TestCase):
+
+    def test_encoding_no_object(self):
+        pre_df = pd.read_csv('tests_static/regularCSVFile.csv')
+        df = weedout.encoding(pre_df)
+        pd.testing.assert_frame_equal(pre_df,df)
+
+    def test_onehot_encoding(self):
+        pre_df = pd.read_csv('tests_static/oneHEncodeCSVFile.csv')
+        df = weedout.encoding(pre_df)
+        self.assertEqual(5, len(df.columns.to_list()))
+        self.assertEqual(['feature1', 'feature2', 'target','feature3_happy', 'feature3_sad'], df.columns.to_list())
+    
+    def test_label_encoding(self):
+        pre_df = pd.read_csv('tests_static/labelEncodeCSVFile.csv')
+        df = weedout.encoding(pre_df)
+        self.assertEqual(4, len(df.columns.to_list()))
+        self.assertEqual(['feature1', 'feature2', 'feature3','target'], df.columns.to_list())
+        self.assertEqual('int', df['feature3'].dtype)
+        self.assertEqual(4, df['feature3'].nunique())
+    
+
 
 if __name__ == '__main__':
     unittest.main()
