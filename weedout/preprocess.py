@@ -17,7 +17,6 @@ from typing import List, Optional, Tuple
 import csv
 
 
-#comment test
 
 def check_target_variable(df: pd.DataFrame, target_name: str) -> bool:
     """
@@ -357,31 +356,6 @@ def separate_target_column(df: pd.DataFrame, target_variable: str) -> Tuple[pd.D
         raise Exception('Target Column does not Exist. Please provide the right one.')
 
 
-def filtered_correlation_matrix(df: pd.DataFrame):
-    """
-        This function prints the Variance Inflation Factor ( VIF = 1/(1-R^2) ) of each feature column. VIF 
-        is a strong indicator of multi-collinearity in our data frame. 
-
-        Note : The user is expected to remove some of the correlated features based on the VIF value.
-
-        @parameter:
-
-            df : pd.DataFrame
-                The dataframe provided by user.
-        
-    """
-
-    numerical_columns = df.select_dtypes(include=['float64', 'int64'])
-    print("Before: ", numerical_columns.shape)
-    
-    vif = pd.DataFrame()
-    vif['Feature'] = numerical_columns.columns
-    vif["VIF"] = [variance_inflation_factor(numerical_columns.values, i) for i in range(numerical_columns.shape[1])]
-    
-    print("Initial VIF values: ")
-    print(vif.sort_values(by="VIF", ascending=False))
-
-
 def encoding(features: pd.DataFrame) -> pd.DataFrame:
     """
         The function encodes the object type columns in the given data frame. If the number of
@@ -503,27 +477,6 @@ def combine (features: pd.DataFrame, target: pd.DataFrame) -> pd.DataFrame:
     combined_df = pd.concat([features, target], axis=1)
     return combined_df
 
-def display(file_path: str ,df: pd.DataFrame) -> None:
-    """
-        The function displays the info of the original dataset in the given file path in comparison to
-        the preprocessed dataframe.
-
-        @paramters:
-            file_path: str 
-
-                The path to the original file.
-
-            df: pd.DataFrame 
-
-                The preproccsed dataframe.
-
-    """
-    original_data=pd.read_csv(file_path)
-    processed_data=df
-    print("\nOriginal Data\n")
-    original_data.info()
-    print("\nProcessed Data\n")
-    processed_data.info()
 
 def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: List[str], type_dataset: int, sampling: int, classfication: int, strategy_sample="smote"):
     total_steps = 11  # Total number of steps in the pipeline
@@ -564,10 +517,6 @@ def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: Lis
     progress_bar.update(1)
     print("\n-----------------------------Separated the input and output-----------------------------------------------\n")
     
-    print("\nFinding Correlations")
-    filtered_correlation_matrix(remaining_df)
-    progress_bar.update(1)
-    print("\n-----------------------------Found the correlations-----------------------------------------------\n")
     
     if strategy_sample != "smote":
         print("\nEncoding Data")
@@ -584,11 +533,6 @@ def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: Lis
     combined_df = combine(preprocessed_df,target)
     progress_bar.update(1)
     print("\n-----------------------------Combining Features Done-----------------------------------------------\n")
-    
-    print("\nDisplaying the results")
-    display(file_path,combined_df)
-    progress_bar.update(1)
-    print("\n-----------------------------Displayed the final results-----------------------------------------------\n")
     
     progress_bar.close()
     return preprocessed_df

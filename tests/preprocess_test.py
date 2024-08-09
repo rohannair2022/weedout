@@ -198,7 +198,15 @@ class TestEncoding(unittest.TestCase):
         self.assertEqual(['feature1', 'feature2', 'feature3','target'], df.columns.to_list())
         self.assertEqual('int', df['feature3'].dtype)
         self.assertEqual(4, df['feature3'].nunique())
-    
+
+
+class TestCombine(unittest.TestCase):
+
+    def combine_test(self):
+        pre_df = pd.read_csv('tests_static/regularCSVFile.csv')
+        features, target = weedout.separate_target_column(pre_df, 'target')
+        df = weedout.combine(features, target)
+        pd.testing.assert_frame_equal(pre_df, df)
 
 
 if __name__ == '__main__':

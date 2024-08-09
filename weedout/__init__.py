@@ -6,17 +6,20 @@ from .preprocess import (
     handle_imbalanced_data,
     remove_outliers,
     separate_target_column,
-    filtered_correlation_matrix,
     encoding,
     feature_scaling,
     combine,
-    display,
     preprocess_pipeline
 )
 
 from .visualization import (
     plot_filtered_correlation_matrix,
     show_removed_outliers,
+)
+
+from .datainfo import (
+    filtered_correlation_matrix,
+    display,
 )
 
 __all__ = [
