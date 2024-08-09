@@ -120,5 +120,36 @@ class TestHandleBalanceDataset(unittest.TestCase):
         self.assertGreater(ratio_minmax_post, ratio_minmax_pre)
 
 
+class TestRemoveOutliers(unittest.TestCase):
+
+    def test_remove_outliers(self):
+         # Load the data
+        df1 = pd.read_csv('tests_static/outlierCSVFile.csv')
+        df2 = weedout.remove_outliers(df1)
+
+        # Merge DataFrames with indicator to find differing rows
+        diff_df = df1.merge(df2, how='outer', indicator=True)
+        rows_in_df1_not_in_df2 = diff_df[diff_df['_merge'] == 'left_only']
+
+        # Define the rows to check
+        rows_to_check = pd.DataFrame({
+            'Name': ['Frank', 'Jack'],
+            'Age': [28, 31],
+            'Height': [400, 178],
+            'Weight': [200, 900]
+        })
+
+        # Select relevant columns for comparison
+        columns_to_compare = ['Name', 'Age', 'Height', 'Weight']
+        rows_in_df1_not_in_df2 = rows_in_df1_not_in_df2[columns_to_compare]
+        rows_to_check = rows_to_check[columns_to_compare]
+
+        # Reset index for proper comparison
+        rows_in_df1_not_in_df2 = rows_in_df1_not_in_df2.reset_index(drop=True)
+        rows_to_check = rows_to_check.reset_index(drop=True)
+
+        # Assert that the DataFrames are equal
+        pd.testing.assert_frame_equal(rows_in_df1_not_in_df2, rows_to_check)
+
 if __name__ == '__main__':
     unittest.main()
