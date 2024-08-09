@@ -474,8 +474,14 @@ def combine (features: pd.DataFrame, target: pd.DataFrame) -> pd.DataFrame:
                 The combined dataframe that consists of both the feature dataframe and the target dataframe.
     
     """
-    combined_df = pd.concat([features, target], axis=1)
-    return combined_df
+    try:
+        if not isinstance(features, pd.DataFrame) and not isinstance(target, pd.DataFrame):
+            raise TypeError
+        combined_df = pd.concat([features, target], axis=1)
+        return combined_df
+    
+    except TypeError:
+        raise Exception('Data type error.Please provide the right type of dataframe.')
 
 
 def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: List[str], type_dataset: int, sampling: int, classfication: int, strategy_sample="smote"):

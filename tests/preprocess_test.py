@@ -208,6 +208,13 @@ class TestCombine(unittest.TestCase):
         df = weedout.combine(features, target)
         pd.testing.assert_frame_equal(pre_df, df)
 
+    def combine_test_fail(self):
+        pre_df = pd.read_csv('tests_static/regularCSVFile.csv')
+        with self.assertRaises(Exception) as context:
+            pre_df = pd.read_csv('tests_static/tsImputeMissingCSVFile.csv')
+            weedout.combine(pre_df, "target")
+        self.assertEqual(str(context.exception), f"Data type error.Please provide the right type of dataframe.")
+
 
 if __name__ == '__main__':
     unittest.main()
