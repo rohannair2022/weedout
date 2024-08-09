@@ -2,9 +2,9 @@ name: CI workflow
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
@@ -21,4 +21,4 @@ jobs:
           pip install flake8  # Add this line to install flake8
 
       - name: Run unit tests with nose
-        run: nosetests -v --with-spec --spec-color --with-coverage --cover-package=app
+        run: nosetests
