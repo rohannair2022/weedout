@@ -1,4 +1,5 @@
 from .preprocess import (
+    check_duplicate_columns,
     initial_check_dt,
     cross_sectional_imputation,
     time_series_imputation,
@@ -19,6 +20,7 @@ from .visualization import (
 )
 
 __all__ = [
+    'check_duplicate_columns',
     'initial_check_dt',
     'cross_sectional_imputation',
     'time_series_imputation',

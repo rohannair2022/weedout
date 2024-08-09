@@ -14,7 +14,41 @@ from sklearn.pipeline import Pipeline
 from scipy import stats
 from tqdm.notebook import tqdm
 from typing import List, Optional, Tuple
+import csv
 
+def check_duplicate_columns(file_path: str) -> List[str]:
+    """
+        The function checks if the dataset has multiple same column names.
+
+        @paramter:
+
+            file_path:
+                The path to the csv file 
+
+        @return:
+
+            List[str]:
+                A list of all the duplicate column names.
+
+    """
+    if file_path.lower().endswith('.csv'):
+        with open(file_path, 'r') as file:
+            reader = csv.reader(file)
+            headers = next(reader)
+            seen = set()
+            duplicates = set()
+            
+            for header in headers:
+                if header in seen:
+                    duplicates.add(header)
+                seen.add(header)
+            
+            if duplicates:
+                return list(duplicates)
+            else:
+                return []
+    else:
+        raise Exception('Wrong File Type. Only CSV allowed.')
 
 
 def initial_check_dt(file_path: str, target_variable: str, columns_to_drop: List[str]) -> Optional[pd.DataFrame]:
@@ -44,6 +78,9 @@ def initial_check_dt(file_path: str, target_variable: str, columns_to_drop: List
     if file_path.lower().endswith('.csv'):
 
         try:
+            duplicate = check_duplicate_columns(file_path)
+            if duplicate:
+                raise Exception("Duplicate columns exist in the file:", duplicate)
             df = pd.read_csv(file_path)
         except pd.errors.ParserError:
             raise Exception('File cannot be parsed as a CSV.') from None
@@ -64,25 +101,14 @@ def initial_check_dt(file_path: str, target_variable: str, columns_to_drop: List
             if missing_percentage > 40:
                 drop_columns.append(col)
 
-        print("Dropping columns with high missing data: ", list(drop_columns))
+        print("Dropped columns with high missing data: ", list(drop_columns))
         df = df.drop(columns=drop_columns)
         
         df_columns = df.columns.tolist() 
-        seen = {}
-        duplicates = set()
         keep_indices = []
 
         for index, col in enumerate(df.columns):
-            if col in seen:
-                duplicates.add(col)
-            else:
-                seen[col] = index
-                keep_indices.append(index)
-    
-        if duplicates:
-            raise Exception("Duplicate columns:", list(duplicates))
-        else:
-            print("No duplicate columns found.")
+            keep_indices.append(index)
 
         df = df.iloc[:, keep_indices]
         
@@ -485,7 +511,7 @@ def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: Lis
     print("\n-----------------------------Separated the input and output-----------------------------------------------\n")
     
     print("\nFinding Correlations")
-    remaining_df = filtered_correlation_matrix(remaining_df)
+    filtered_correlation_matrix(remaining_df)
     progress_bar.update(1)
     print("\n-----------------------------Found the correlations-----------------------------------------------\n")
     
