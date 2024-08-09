@@ -86,6 +86,38 @@ class TestHandleBalanceDataset(unittest.TestCase):
         df = weedout.handle_imbalanced_data(pre_df, target_variable, strategy)
         ratio_minmax_post = min_and_max_ratio(df, target_variable)
         self.assertGreater(ratio_minmax_post, ratio_minmax_pre)
+    
+    def test_undersampling(self):
+
+        pre_df = pd.read_csv('tests_static/balanceCSVFile.csv')
+        target_variable='target'
+        strategy = 'undersampling'
+
+        def min_and_max_ratio(df, target):
+            max_count = df[target].value_counts().max()
+            min_count = df[target].value_counts().min()
+            return min_count/max_count
+        
+        ratio_minmax_pre = min_and_max_ratio(pre_df, target_variable)
+        df = weedout.handle_imbalanced_data(pre_df, target_variable, strategy)
+        ratio_minmax_post = min_and_max_ratio(df, target_variable)
+        self.assertGreater(ratio_minmax_post, ratio_minmax_pre)
+    
+    def test_SMOTE(self):
+
+        pre_df = pd.read_csv('tests_static/balanceCSVFile.csv')
+        target_variable='target'
+        strategy = 'smote'
+
+        def min_and_max_ratio(df, target):
+            max_count = df[target].value_counts().max()
+            min_count = df[target].value_counts().min()
+            return min_count/max_count
+        
+        ratio_minmax_pre = min_and_max_ratio(pre_df, target_variable)
+        df = weedout.handle_imbalanced_data(pre_df, target_variable, strategy)
+        ratio_minmax_post = min_and_max_ratio(df, target_variable)
+        self.assertGreater(ratio_minmax_post, ratio_minmax_pre)
 
 
 if __name__ == '__main__':

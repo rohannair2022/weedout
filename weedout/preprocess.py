@@ -225,7 +225,9 @@ def time_series_imputation(time_series_df: pd.DataFrame) -> pd.DataFrame:
 def handle_imbalanced_data(df: pd.DataFrame, target_variable: str, strategy = "smote", k_neighbors=2) -> pd.DataFrame:
     """
         The function balances a dataframe defined through a given sampling strategy to be
-        ran on a classfication model. 
+        ran on a classfication model.
+
+        Note: Choosing "smote" as your strategy would give you an oversampled encoded dataframe. 
 
         @paramters:
 
@@ -265,6 +267,10 @@ def handle_imbalanced_data(df: pd.DataFrame, target_variable: str, strategy = "s
     
     print(f'The distribution of the target column prior to sampling: {df[target_variable].value_counts}')
     
+    if strategy == "smote":
+        features, target = separate_target_column(df, target_variable)
+        features = encoding(features)
+        df = combine(features,target)
 
     X_res, y_res= separate_target_column(df,target_variable)
     X_res, y_res = sampler.fit_resample(X_res, y_res)
@@ -517,7 +523,7 @@ def display(file_path: str ,df: pd.DataFrame) -> None:
     print("\nProcessed Data\n")
     processed_data.info()
 
-def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: List[str], type_dataset: int, sampling: int, classfication: int, strategy_sample="SMOTE"):
+def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: List[str], type_dataset: int, sampling: int, classfication: int, strategy_sample="smote"):
     total_steps = 11  # Total number of steps in the pipeline
     progress_bar = tqdm(total=total_steps, desc="Pipeline Progress", unit="step")
     
@@ -561,10 +567,11 @@ def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: Lis
     progress_bar.update(1)
     print("\n-----------------------------Found the correlations-----------------------------------------------\n")
     
-    print("\nEncoding Data")
-    remaining_df = encoding(remaining_df)
-    progress_bar.update(1)
-    print("\n-----------------------------Encoded the data-----------------------------------------------\n")
+    if strategy_sample != "smote":
+        print("\nEncoding Data")
+        remaining_df = encoding(remaining_df)
+        progress_bar.update(1)
+        print("\n-----------------------------Encoded the data-----------------------------------------------\n")
     
     print("\nFeature Scaling")
     preprocessed_df = feature_scaling(remaining_df, dropped_columns)
