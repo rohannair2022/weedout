@@ -8,26 +8,18 @@
 
 ## Where to get it?
 
-**Weedout can be obtained on [Weedout](Rohan's open source Github rep ~ Weedout). The link to our website is [Weedout.com](wwww.weedout.ai)**.
+**Weedout can be obtained on [Weedout](Rohan's open source Github rep ~ Weedout). The link to our website is [Weedout.com](wwww.weedout.ai).**
 
 > Package name:`weedout`
 
 ## How can you contribute to Weedout?
 
-**Weedout welcomes your expertise and enthusiasm!
+**Little tweaks or updates are always welcomed. 
+There are ways to contribute to Weedout:
+examine pull requests to keep up with both new and existing problems.
+create instructional resources such as presentations and tutorials.
+sustain and enhance our website
+Visit our website to learn more about the ways you can support Weedout.**
 
-Small improvements or fixes are always appreciated. If you are considering larger contributions to the source code, please contact us through the mailing list first.
-
-Writing code isn’t the only way to contribute to NumPy. You can also:
-
-review pull requests
-help us stay on top of new and old issues
-develop tutorials, presentations, and other educational materials
-maintain and improve our website
-develop graphic design for our brand assets and promotional materials
-translate website content
-help with outreach and onboard new contributors
-write grant proposals and help with other fundraising efforts
-For more information about the ways you can contribute to Weeddout, visit our website. If you’re unsure where to start or how your skills fit in, reach out! You can ask on the mailing list or here, on GitHub, by opening a new issue or leaving a comment on a relevant issue that is already open.
 
 
