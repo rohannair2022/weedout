@@ -9,7 +9,7 @@
 ## Where to get it?
 
 **Weedout can be obtained on [Weedout](https://github.com/rohannair2022/Weedout). The link to our website is [Weedout.com](wwww.weedout.com).
-The link to our LinkedIn page is:[Weedout](https://www.linkedin.com/company/weedoutdata/?viewAsMember=true)**
+The link to our LinkedIn page is:[Weedout](https://www.linkedin.com/company/weedoutdata/?viewAsMember=true).**
 
 > Package name:`weedout`
 
