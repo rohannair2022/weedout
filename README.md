@@ -8,7 +8,7 @@
 
 ## Where to get it?
 
-**Weedout can be obtained on [Weedout](Rohan's open source Github rep ~ Weedout). The link to our website is [Weedout.com](wwww.weedout.ai).**
+**Weedout can be obtained on [Weedout](https://github.com/rohannair2022/Weedout). The link to our website is [Weedout.com](wwww.weedout.ai).**
 
 > Package name:`weedout`
 
