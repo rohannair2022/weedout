@@ -220,6 +220,40 @@ class TestCombine(unittest.TestCase):
             weedout.combine(pre_df, "target")
         self.assertEqual(str(context.exception), f"Data type error.Please provide the right type of dataframe.")
 
+class TestFeatureScaling(unittest.TestCase):
+        
+        def test_featurescaling(self):
+        
+            n = 200
+
+            normal_1 = np.random.normal(loc=0, scale=1, size=n)
+            normal_2 = np.random.normal(loc=5, scale=2, size=n)
+
+            exponential = np.random.exponential(scale=2, size=n)
+            lognormal = np.random.lognormal(mean=0, sigma=1, size=n)
+            binary_values = np.random.randint(2, size=n)
+
+            pre_df = pd.DataFrame({
+                'Normal_1': normal_1,
+                'Exponential': exponential,
+                'Lognormal': lognormal,
+                'Normal_2': normal_2,
+                'Binary': binary_values,
+            })
+
+            df = weedout.feature_scaling(pre_df, [])
+
+            # Standardized Columns should result in an std value closer to 1.
+            self.assertLess(abs(df['Normal_1'].std() - 1), abs(pre_df['Normal_1'].std() - 1))
+            self.assertLess(abs(df['Normal_2'].std() - 1), abs(pre_df['Normal_2'].std() - 1))
+            # MinMaxScaled Columns should result in values between 0 and 1. 
+            self.assertEqual(0, df['Exponential'].min())
+            self.assertAlmostEqual(1, df['Exponential'].max())
+            self.assertEqual(0, df['Lognormal'].min())
+            self.assertAlmostEqual(1, df['Lognormal'].max())
+            # Binary values should not be worked upon.
+            pd.testing.assert_frame_equal(df[['Binary']], pre_df[['Binary']])
+
 
 class TestPipeline(unittest.TestCase):
 
