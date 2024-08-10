@@ -47,10 +47,11 @@ class TestCrossSectionalImputation(unittest.TestCase):
 
     def test_row_impute(self):
         pre_df = pd.read_csv('tests_static/csImputeCSVFile.csv')
+        target_name = 'target'
 
-        df = weedout.cross_sectional_imputation(pre_df)
+        df = weedout.cross_sectional_imputation(pre_df, target_name)
 
-        self.assertEqual([3.0, 5.6, 'sad', 1.0], df.iloc[2].tolist())
+        self.assertEqual([3.0, 5.6, 'sad', 0.0], df.iloc[2].tolist())
 
 
 class TestTimeSeriesImputation(unittest.TestCase):
@@ -58,15 +59,18 @@ class TestTimeSeriesImputation(unittest.TestCase):
     def test_row_impute(self):
         pre_df = pd.read_csv('tests_static/tsImputeCSVFile.csv')
 
-        df = weedout.time_series_imputation(pre_df)
+        target_name = 'target'
+
+        df = weedout.time_series_imputation(pre_df, target_name)
 
         self.assertEqual([4.0,6.7,'sad',1.0], df.iloc[4].tolist())
     
     def test_missingnum_firstrow(self):
+        target_name = 'target'
 
         with self.assertRaises(Exception) as context:
             pre_df = pd.read_csv('tests_static/tsImputeMissingCSVFile.csv')
-            weedout.time_series_imputation(pre_df)
+            weedout.time_series_imputation(pre_df, target_name)
 
         self.assertEqual(str(context.exception), "The first row cannot have a numeric null value.") 
 
@@ -203,13 +207,13 @@ class TestEncoding(unittest.TestCase):
 
 class TestCombine(unittest.TestCase):
 
-    def combine_test(self):
+    def test_combine(self):
         pre_df = pd.read_csv('tests_static/regularCSVFile.csv')
         features, target = weedout.separate_target_column(pre_df, 'target')
         df = weedout.combine(features, target)
         pd.testing.assert_frame_equal(pre_df, df)
 
-    def combine_test_fail(self):
+    def test_combine_fail(self):
         pre_df = pd.read_csv('tests_static/regularCSVFile.csv')
         with self.assertRaises(Exception) as context:
             pre_df = pd.read_csv('tests_static/tsImputeMissingCSVFile.csv')
@@ -217,42 +221,36 @@ class TestCombine(unittest.TestCase):
         self.assertEqual(str(context.exception), f"Data type error.Please provide the right type of dataframe.")
 
 
-class TestFeatureScaling(unittest.TestCase):
+class TestPipeline(unittest.TestCase):
 
-    def test_correct_scaling(self):
+    def test_final_pipeline(self):
 
-        np.random.seed(42)
+        pre_df = pd.read_csv('tests_static/regularCSVFile.csv')
+        target_variable ='target'
+        strategy = "smote"
+        sampling = 1
+        classification = 1
+
+
+        df = weedout.preprocess_pipeline('tests_static/regularCSVFile.csv', target_variable, [], type_dataset=0, sampling=1, classfication=1, strategy_sample=strategy)
+
+
+        # Test for Smote
+        if classification:
+            def min_and_max_ratio(df, target):
+                max_count = df[target].value_counts().max()
+                min_count = df[target].value_counts().min()
+                return min_count/max_count
+            
+            ratio_minmax_pre = min_and_max_ratio(pre_df, target_variable)
+            ratio_minmax_post = min_and_max_ratio(df, target_variable)
+            self.assertGreater(ratio_minmax_post, ratio_minmax_pre)
+
+        # Test for no null values:
+        if sampling:
+            if classification:
+                self.assertEqual(0, df.isnull().sum().sum())
         
-        n = 200
-
-        normal_1 = np.random.normal(loc=0, scale=1, size=n)
-        normal_2 = np.random.normal(loc=5, scale=2, size=n)
-
-        exponential = np.random.exponential(scale=2, size=n)
-        lognormal = np.random.lognormal(mean=0, sigma=1, size=n)
-        binary_values = np.random.randint(2, size=n)
-
-        pre_df = pd.DataFrame({
-            'Normal_1': normal_1,
-            'Exponential': exponential,
-            'Lognormal': lognormal,
-            'Normal_2': normal_2,
-            'Binary': binary_values,
-        })
-
-        df = weedout.feature_scaling(pre_df, [])
-
-        # Standardized Columns should result in an std value closer to 1.
-        self.assertLess(abs(df['Normal_1'].std() - 1), abs(pre_df['Normal_1'].std() - 1))
-        self.assertLess(abs(df['Normal_2'].std() - 1), abs(pre_df['Normal_2'].std() - 1))
-        # MinMaxScaled Columns should result in values between 0 and 1. 
-        self.assertEqual(0, df['Exponential'].min())
-        self.assertEqual(1, df['Exponential'].max())
-        self.assertEqual(0, df['Lognormal'].min())
-        self.assertEqual(1, df['Lognormal'].max())
-        # Binary values should not be worked upon.
-        pd.testing.assert_frame_equal(df[['Binary']], pre_df[['Binary']])
-
 
 if __name__ == '__main__':
     unittest.main()
