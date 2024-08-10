@@ -4,5 +4,8 @@
 # Ignore distribution folder
 /dist/
 
+#Ignore weedout
+/weedout.egg-info/
+
 # OS generated files
 .DS_Store
