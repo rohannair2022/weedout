@@ -1,0 +1,8 @@
+# Ignore build output
+/build/
+
+# Ignore distribution folder
+/dist/
+
+# OS generated files
+.DS_Store
