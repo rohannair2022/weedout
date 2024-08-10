@@ -149,7 +149,7 @@ def initial_check_dt(file_path: str, target_variable: str, columns_to_drop: List
     else:
         raise Exception("Oops :( The file is not a CSV file!")
 
-def cross_sectional_imputation(cross_sectional_df: pd.DataFrame) -> pd.DataFrame:
+def cross_sectional_imputation(cross_sectional_df: pd.DataFrame, target_name: str) -> pd.DataFrame:
     """
         The function works on imputation for the given cross sectional dataframe. For columns with
         numeric values, the null values of that column are imputed/filled with the mean (average) value 
@@ -160,6 +160,9 @@ def cross_sectional_imputation(cross_sectional_df: pd.DataFrame) -> pd.DataFrame
 
             cross_sectional_df : pd.DataFrame:
                 The dataframe of the cross-sectional dataset with the target column included.
+
+            target_name: str:
+                The name of the target column
         
         @return:
         
@@ -172,7 +175,7 @@ def cross_sectional_imputation(cross_sectional_df: pd.DataFrame) -> pd.DataFrame
     print("Total Null value counts before imputation: \n",df.isnull().sum())
 
     for column in df.columns:
-        if pd.api.types.is_numeric_dtype(df[column]):
+        if pd.api.types.is_numeric_dtype(df[column]) and column != target_name:
             df[column] = df[column].fillna(df[column].mean())
             df[column] = df[column].astype(float)
         else:
@@ -182,7 +185,7 @@ def cross_sectional_imputation(cross_sectional_df: pd.DataFrame) -> pd.DataFrame
     return df
 
     
-def time_series_imputation(time_series_df: pd.DataFrame) -> pd.DataFrame:
+def time_series_imputation(time_series_df: pd.DataFrame, target_name: str) -> pd.DataFrame:
     """
         The function works on imputation for the given time series dataframe. For columns with
         numeric values, the null values of that column are imputed/filled through the method of linear 
@@ -196,6 +199,9 @@ def time_series_imputation(time_series_df: pd.DataFrame) -> pd.DataFrame:
 
             time_series_df : pd.DataFrame:
                 The dataframe of the time series dataset with the target column included.
+            
+            target_name: str:
+                The name of the target column
         
         @return:
         
@@ -212,14 +218,13 @@ def time_series_imputation(time_series_df: pd.DataFrame) -> pd.DataFrame:
     print("Total Null value counts before imputation: \n",df.isnull().sum())
 
     for column in df.columns:
-        if pd.api.types.is_numeric_dtype(df[column]):
+        if pd.api.types.is_numeric_dtype(df[column]) and column != target_name:
             df[column] = df[column].interpolate(method='linear')
             df[column] = df[column].astype(float)
         else:
             df[column] = df[column].fillna(df[column].mode()[0])
         
     print("\nTotal Null value counts: \n",df.isnull().sum())
-    print("All Tests Passed")
     return df
 
 
@@ -273,8 +278,11 @@ def handle_imbalanced_data(df: pd.DataFrame, target_variable: str, strategy = "s
         features = encoding(features)
         df = combine(features,target)
 
+
     X_res, y_res= separate_target_column(df,target_variable)
+
     X_res, y_res = sampler.fit_resample(X_res, y_res)
+
     df_balanced = pd.concat([X_res, y_res], axis=1)
 
     print(f'The distribution of the target column after sampling: {df_balanced[target_variable].value_counts}')
@@ -485,7 +493,58 @@ def combine (features: pd.DataFrame, target: pd.DataFrame) -> pd.DataFrame:
 
 
 def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: List[str], type_dataset: int, sampling: int, classfication: int, strategy_sample="smote"):
-    total_steps = 11  # Total number of steps in the pipeline
+    """
+        This function is a stand-alone pipeline used for the free website template where you can 
+        interact with a GUI.
+        
+        @parameters:
+
+            file_path: str 
+                The path to the dataset.
+
+            target_column: str 
+                The name of the target variable.
+
+            dropped_columns: List[str]
+                The list of column names the client wants dropped from the dataset.
+
+            type_dataset: int
+                The type of dataset provided:
+                    - 0 -> Cross Sectional
+                    - 1 -> Time Series
+            
+            sampling: int 
+                Indicates whether the client wants to perform sampling or not
+                    - 0 -> No sampling
+                    - 1 -> Sampling 
+                    
+            classification: int 
+                The type of model that the dataset will be trained on 
+                Note: The pipeline does not perform sampling for regression models.
+                    - 0 -> regression
+                    - 1 -> classification
+
+            stratergy_sample: str: default = SMOTE
+                The name of the sampling stratergy:
+                    - oversampling 
+                    - undersampling 
+                    - smote 
+
+        @return:
+
+            pd.DataFrame:
+                The proccessed dataframe.
+
+    """
+    # Total number of steps in the pipeline
+    total_steps = 8
+
+    if sampling == "smote":
+        total_steps -= 1
+    
+    if not classfication:
+        total_steps -= 1
+
     progress_bar = tqdm(total=total_steps, desc="Pipeline Progress", unit="step")
     
     print("\nInitial Check")
@@ -495,11 +554,11 @@ def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: Lis
     
     print("\nImputation")
     if not type_dataset:
-        df = cross_sectional_imputation(df)
+        df = cross_sectional_imputation(df, target_column)
         progress_bar.update(1)
         print("\n-----------------------------Cross Sectional Imputation Done-----------------------------------------------\n")
     elif type_dataset == 1:
-        df = time_series_imputation(df)
+        df = time_series_imputation(df, target_column)
         progress_bar.update(1)
         print("\n-----------------------------Time Series Imputation Done-----------------------------------------------\n")
 
@@ -541,4 +600,4 @@ def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: Lis
     print("\n-----------------------------Combining Features Done-----------------------------------------------\n")
     
     progress_bar.close()
-    return preprocessed_df
+    return combined_df
