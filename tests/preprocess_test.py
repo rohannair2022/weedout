@@ -226,7 +226,7 @@ class TestFeatureScaling(unittest.TestCase):
         
             n = 200
 
-            normal_1 = np.random.normal(loc=0, scale=1, size=n)
+            normal_1 = np.random.normal(loc=5, scale=2, size=n)
             normal_2 = np.random.normal(loc=5, scale=2, size=n)
 
             exponential = np.random.exponential(scale=2, size=n)
@@ -244,8 +244,8 @@ class TestFeatureScaling(unittest.TestCase):
             df = weedout.feature_scaling(pre_df, [])
 
             # Standardized Columns should result in an std value closer to 1.
-            self.assertLess(abs(df['Normal_1'].std() - 1), abs(pre_df['Normal_1'].std() - 1))
-            self.assertLess(abs(df['Normal_2'].std() - 1), abs(pre_df['Normal_2'].std() - 1))
+            self.assertGreater(0.1, abs(df['Normal_1'].std() - 1))
+            self.assertGreater(0.1, abs(df['Normal_2'].std() - 1))
             # MinMaxScaled Columns should result in values between 0 and 1. 
             self.assertEqual(0, df['Exponential'].min())
             self.assertAlmostEqual(1, df['Exponential'].max())
