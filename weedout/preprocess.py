@@ -412,7 +412,7 @@ def feature_scaling(features: pd.DataFrame, unscale_columns: List[str]) -> pd.Da
     
     """
     df = features.copy()
-        
+    
     numerical_columns = df.select_dtypes(include=['float64', 'int64']).columns
     non_numerical_columns = df.select_dtypes(exclude=['float64', 'int64']).columns
 
@@ -443,9 +443,9 @@ def feature_scaling(features: pd.DataFrame, unscale_columns: List[str]) -> pd.Da
             else:
 
                 if unique_count > 3: 
-                    scaler = MinMaxScaler()
+                    scaler = MinMaxScaler(feature_range=(0,1))
                     df[col] = scaler.fit_transform(df[[col]])
-                    Standardscaler_algorithms.append(col)
+                    Minmaxscaler_algorithms.append(col)
             
                         
     print("\nMinmax scaled columns: \n", Minmaxscaler_algorithms)
