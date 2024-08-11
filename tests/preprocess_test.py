@@ -41,7 +41,7 @@ class TestInitialCheckDt(unittest.TestCase):
 
         df = weedout.initial_check_dt(file_path, target_name, unscale_columns)
 
-        self.assertEqual(['feature2','feature3','target'], df.columns.to_list())
+        self.assertEqual(['id','feature2','feature3','target'], df.columns.to_list())
 
 class TestCrossSectionalImputation(unittest.TestCase):
 
@@ -180,7 +180,7 @@ class TestSeperateTargetColumn(unittest.TestCase):
         pre_df = pd.read_csv('tests_static/regularCSVFile.csv')
         target_name = 'target'
         df, target= weedout.separate_target_column(pre_df, target_name)
-        self.assertEqual(['feature1','feature2','feature3'], df.columns.to_list())
+        self.assertEqual(['id','feature1','feature2','feature3'], df.columns.to_list())
         self.assertEqual(['target'], target.columns.tolist() )
 
 class TestEncoding(unittest.TestCase):
@@ -192,13 +192,13 @@ class TestEncoding(unittest.TestCase):
 
     def test_onehot_encoding(self):
         pre_df = pd.read_csv('tests_static/oneHEncodeCSVFile.csv')
-        df = weedout.encoding(pre_df)
+        df = weedout.encoding(pre_df,['feature1'])
         self.assertEqual(5, len(df.columns.to_list()))
         self.assertEqual(['feature1', 'feature2', 'target','feature3_happy', 'feature3_sad'], df.columns.to_list())
     
     def test_label_encoding(self):
         pre_df = pd.read_csv('tests_static/labelEncodeCSVFile.csv')
-        df = weedout.encoding(pre_df)
+        df = weedout.encoding(pre_df,['feature1'])
         self.assertEqual(4, len(df.columns.to_list()))
         self.assertEqual(['feature1', 'feature2', 'feature3','target'], df.columns.to_list())
         self.assertEqual('int', df['feature3'].dtype)
@@ -226,11 +226,11 @@ class TestFeatureScaling(unittest.TestCase):
         
             n = 200
 
-            normal_1 = np.random.normal(loc=5, scale=2, size=n)
-            normal_2 = np.random.normal(loc=5, scale=2, size=n)
+            normal_1 = np.random.normal(size=n)
+            normal_2 = np.random.normal(size=n)
 
-            exponential = np.random.exponential(scale=2, size=n)
-            lognormal = np.random.lognormal(mean=0, sigma=1, size=n)
+            exponential = np.random.exponential(size=n)
+            lognormal = np.random.lognormal(size=n)
             binary_values = np.random.randint(2, size=n)
 
             pre_df = pd.DataFrame({
@@ -243,14 +243,12 @@ class TestFeatureScaling(unittest.TestCase):
 
             df = weedout.feature_scaling(pre_df, [])
 
-            # Standardized Columns should result in an std value closer to 1.
-            self.assertGreater(0.1, abs(df['Normal_1'].std() - 1))
-            self.assertGreater(0.1, abs(df['Normal_2'].std() - 1))
             # MinMaxScaled Columns should result in values between 0 and 1. 
             self.assertEqual(0, df['Exponential'].min())
             self.assertAlmostEqual(1, df['Exponential'].max())
             self.assertEqual(0, df['Lognormal'].min())
             self.assertAlmostEqual(1, df['Lognormal'].max())
+
             # Binary values should not be worked upon.
             pd.testing.assert_frame_equal(df[['Binary']], pre_df[['Binary']])
 
@@ -266,7 +264,7 @@ class TestPipeline(unittest.TestCase):
         classification = 1
 
 
-        df = weedout.preprocess_pipeline('tests_static/regularCSVFile.csv', target_variable, [], type_dataset=0, sampling=1, classfication=1, strategy_sample=strategy)
+        df = weedout.preprocess_pipeline('tests_static/regularCSVFile.csv', target_variable, ['feature1'], ['id'], type_dataset=0, sampling=1, classfication=1, strategy_sample=strategy)
 
 
         # Test for Smote

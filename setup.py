@@ -16,7 +16,6 @@ setup(
         'statsmodels',
         'imbalanced-learn',
         'scipy',
-        'tqdm',
         'typing'
     ],
     long_description=description,

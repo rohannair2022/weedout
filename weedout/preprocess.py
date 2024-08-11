@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
+import csv
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler, MinMaxScaler,OneHotEncoder, FunctionTransformer
 from statsmodels.stats.outliers_influence import variance_inflation_factor
@@ -14,7 +12,7 @@ from sklearn.pipeline import Pipeline
 from scipy import stats
 from tqdm.notebook import tqdm
 from typing import List, Optional, Tuple
-import csv
+from sklearn.utils import resample
 
 
 
@@ -181,7 +179,7 @@ def cross_sectional_imputation(cross_sectional_df: pd.DataFrame, target_name: st
         else:
             df[column] = df[column].fillna(df[column].mode()[0])
     
-    print("\nTotal Null value counts: \n",df.isnull().sum())
+    print("\nTotal Null value counts after imputation: \n",df.isnull().sum())
     return df
 
     
@@ -224,11 +222,11 @@ def time_series_imputation(time_series_df: pd.DataFrame, target_name: str) -> pd
         else:
             df[column] = df[column].fillna(df[column].mode()[0])
         
-    print("\nTotal Null value counts: \n",df.isnull().sum())
+    print("\nTotal Null value counts after imputation: \n",df.isnull().sum())
     return df
 
 
-def handle_imbalanced_data(df: pd.DataFrame, target_variable: str, strategy = "smote", k_neighbors=2) -> pd.DataFrame:
+def handle_imbalanced_data(df: pd.DataFrame, target_variable: str, strategy = "smote", k_neighbors=2, untouched_columns: List[str]=[]) -> pd.DataFrame:
     """
         The function balances a dataframe defined through a given sampling strategy to be
         ran on a classfication model.
@@ -251,6 +249,9 @@ def handle_imbalanced_data(df: pd.DataFrame, target_variable: str, strategy = "s
             
             k_neighbours: int: default = 2
                 The number of neighbours for the Smote Stratergy
+
+            untouched_columns : List[str]
+                The list of column names that should not be encoded.
         
         @return:
 
@@ -275,7 +276,7 @@ def handle_imbalanced_data(df: pd.DataFrame, target_variable: str, strategy = "s
     
     if strategy == "smote":
         features, target = separate_target_column(df, target_variable)
-        features = encoding(features)
+        features = encoding(features, untouched_columns)
         df = combine(features,target)
 
 
@@ -364,7 +365,7 @@ def separate_target_column(df: pd.DataFrame, target_variable: str) -> Tuple[pd.D
         raise Exception('Target Column does not Exist. Please provide the right one.')
 
 
-def encoding(features: pd.DataFrame) -> pd.DataFrame:
+def encoding(features: pd.DataFrame, untouched_columns: List[str]=[]) -> pd.DataFrame:
     """
         The function encodes the object type columns in the given data frame. If the number of
         attributes in a column exceeds more than 3, then the function performs Label Encoding. If it does not, 
@@ -373,6 +374,9 @@ def encoding(features: pd.DataFrame) -> pd.DataFrame:
         @parameters:
             features : str
                 The data frame consisting of all the features (excluding the target column).
+            
+            untouched_columns : str
+                The list consists of all the 
         
         @return:
             pd.DataFrame:
@@ -380,7 +384,7 @@ def encoding(features: pd.DataFrame) -> pd.DataFrame:
     """
     print("Before encoding:", features.columns)
     for column in features.columns:
-        if features[column].dtype == "object":
+        if features[column].dtype == "object" and column not in untouched_columns:
             if features[column].nunique() > 3:
                 encoder = LabelEncoder()
                 features[column] = encoder.fit_transform(features[column])
@@ -424,12 +428,23 @@ def feature_scaling(features: pd.DataFrame, unscale_columns: List[str]) -> pd.Da
     numerical_columns = df.select_dtypes(include=['float64', 'int64']).columns
     non_numerical_columns = df.select_dtypes(exclude=['float64', 'int64']).columns
 
-    def is_normal(column):
-        stat, p = stats.shapiro(column)
-        alpha = 0.05
-        if p > alpha:
-            return True
-        return False
+    def is_normal(column, alpha=0.05, max_sample_size=5000):
+        column = column.dropna()
+
+        if len(column) > max_sample_size:
+            column = resample(column, n_samples=max_sample_size, random_state=42)
+
+        anderson_result = stats.anderson(column, dist='norm')
+        anderson_normal = anderson_result.statistic < anderson_result.critical_values[2]  
+
+        skewness = stats.skew(column)
+        kurtosis = stats.kurtosis(column)
+
+        skew_normal = abs(skewness) < 0.5
+        kurtosis_normal = abs(kurtosis) < 0.5
+
+        # Return True if all conditions are met
+        return anderson_normal and skew_normal and kurtosis_normal
 
     
     Minmaxscaler_algorithms = []
@@ -492,7 +507,7 @@ def combine (features: pd.DataFrame, target: pd.DataFrame) -> pd.DataFrame:
         raise Exception('Data type error.Please provide the right type of dataframe.')
 
 
-def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: List[str], type_dataset: int, sampling: int, classfication: int, strategy_sample="smote"):
+def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: List[str]=[], untouched_columns: List[str]=[], type_dataset: int=0, sampling: int=0, classfication: int=1, strategy_sample="smote"):
     """
         This function is a stand-alone pipeline used for the free website template where you can 
         interact with a GUI.
@@ -507,6 +522,9 @@ def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: Lis
 
             dropped_columns: List[str]
                 The list of column names the client wants dropped from the dataset.
+
+            untouched_columns: List[str]
+                The list of columns that should be not scaled/encoded.
 
             type_dataset: int
                 The type of dataset provided:
@@ -536,68 +554,52 @@ def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: Lis
                 The proccessed dataframe.
 
     """
-    # Total number of steps in the pipeline
-    total_steps = 8
-
-    if sampling == "smote":
-        total_steps -= 1
-    
-    if not classfication:
-        total_steps -= 1
-
-    progress_bar = tqdm(total=total_steps, desc="Pipeline Progress", unit="step")
-    
     print("\nInitial Check")
     df = initial_check_dt(file_path, target_column, dropped_columns)
-    progress_bar.update(1)
     print("\n-----------------------------Initial check done-----------------------------------------------\n")
     
     print("\nImputation")
     if not type_dataset:
         df = cross_sectional_imputation(df, target_column)
-        progress_bar.update(1)
         print("\n-----------------------------Cross Sectional Imputation Done-----------------------------------------------\n")
     elif type_dataset == 1:
         df = time_series_imputation(df, target_column)
-        progress_bar.update(1)
         print("\n-----------------------------Time Series Imputation Done-----------------------------------------------\n")
 
     if sampling:
         if classfication:
-            print("\nHandling Imbalanced Data")
-            df = handle_imbalanced_data(df, target_column, strategy_sample)
-            progress_bar.update(1)
-            print("\n-----------------------------Balanced the data-----------------------------------------------\n")
+            if strategy_sample == "smote":            
+                print("\nHandling Imbalanced Data")
+                df = handle_imbalanced_data(df, target_column, strategy_sample, untouched_columns=untouched_columns)
+                print("\n-----------------------------Balanced and Encoded the data-----------------------------------------------\n")
+            else:
+                print("\nHandling Imbalanced Data")
+                df = handle_imbalanced_data(df, target_column, strategy_sample)
+                print("\n-----------------------------Balanced the data-----------------------------------------------\n")
         else:
            print("\nCant Balance a Dataset for Regression Models")
-           print("\n-----------------------------Balanced the data-----------------------------------------------\n")
+           print("\n-----------------------------Did not Balance the data-----------------------------------------------\n")
 
     print("\nRemoving Outliers")
     df = remove_outliers(df)
-    progress_bar.update(1)
     print("\n-----------------------------Removed Outliers-----------------------------------------------\n")
     
     print("\nSeparating Input and Output")
     remaining_df, target = separate_target_column(df, target_column)
-    progress_bar.update(1)
     print("\n-----------------------------Separated the input and output-----------------------------------------------\n")
     
     
     if strategy_sample != "smote":
         print("\nEncoding Data")
-        remaining_df = encoding(remaining_df)
-        progress_bar.update(1)
+        remaining_df = encoding(remaining_df, untouched_columns)
         print("\n-----------------------------Encoded the data-----------------------------------------------\n")
     
     print("\nFeature Scaling")
-    preprocessed_df = feature_scaling(remaining_df, dropped_columns)
-    progress_bar.update(1)
+    preprocessed_df = feature_scaling(remaining_df, untouched_columns)
     print("\n-----------------------------Feature Scaling Done-----------------------------------------------\n")
     
     print("\nCombining Feature and Target")
     combined_df = combine(preprocessed_df,target)
-    progress_bar.update(1)
     print("\n-----------------------------Combining Features Done-----------------------------------------------\n")
     
-    progress_bar.close()
     return combined_df
