@@ -265,7 +265,9 @@ class TestPipeline(unittest.TestCase):
 
 
         df = weedout.preprocess_pipeline('tests_static/regularCSVFile.csv', target_variable, ['feature1'], ['id'], type_dataset=0, sampling=1, classfication=1, strategy_sample=strategy)
-
+        
+        self.assertEqual('object', df['id'].dtype)
+        self.assertTrue(not df.isnull().values.any())
 
         # Test for Smote
         if classification:

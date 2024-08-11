@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setup(
     name='weedout', 
-    version='0.2', 
+    version='1.0', 
     packages=find_packages(), 
     install_requires=[
         'pandas',

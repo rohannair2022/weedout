@@ -275,16 +275,35 @@ def handle_imbalanced_data(df: pd.DataFrame, target_variable: str, strategy = "s
     print(f'The distribution of the target column prior to sampling: {df[target_variable].value_counts}')
     
     if strategy == "smote":
+
         features, target = separate_target_column(df, target_variable)
+
         features = encoding(features, untouched_columns)
-        df = combine(features,target)
 
+        columns_to_drop = [col for col in untouched_columns if col in features.columns]
+        features_new = features.drop(columns=columns_to_drop)
 
-    X_res, y_res= separate_target_column(df,target_variable)
+        post_df = combine(features_new,target)
 
-    X_res, y_res = sampler.fit_resample(X_res, y_res)
+        X_res, y_res= separate_target_column(post_df,target_variable)
 
-    df_balanced = pd.concat([X_res, y_res], axis=1)
+        X_res, y_res = sampler.fit_resample(X_res, y_res)
+
+        df_balanced = pd.concat([X_res, y_res], axis=1)
+
+        df_balanced = pd.concat([df_balanced, df[untouched_columns].reset_index(drop=True)], axis=1)
+
+        for column in df_balanced.columns:
+            if column in untouched_columns:
+                df_balanced[column] = df_balanced[column].fillna(df_balanced[column].mode()[0])
+
+    else:
+
+        X_res, y_res= separate_target_column(df,target_variable)
+
+        X_res, y_res = sampler.fit_resample(X_res, y_res)
+
+        df_balanced = pd.concat([X_res, y_res], axis=1)
 
     print(f'The distribution of the target column after sampling: {df_balanced[target_variable].value_counts}')
     

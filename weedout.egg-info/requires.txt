@@ -6,5 +6,4 @@ scikit-learn
 statsmodels
 imbalanced-learn
 scipy
-tqdm
 typing
