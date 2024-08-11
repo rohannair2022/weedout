@@ -9,5 +9,4 @@ scipy
 tqdm==4.65.0
 typing
 nose
-ipywidgets
 coverage
