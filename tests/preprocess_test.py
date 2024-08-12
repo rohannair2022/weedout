@@ -3,6 +3,24 @@ import pandas as pd
 import numpy as np
 import weedout.preprocess as weedout
 
+lass TestCheckDataframe(unittest.TestCase):
+
+    def test_wrong_data_type(self):
+        df = "anything"
+
+        with self.assertRaises(Exception) as context:
+            weedout.check_dataframe(df)
+
+        self.assertFalse(check_dataframe(df))lass TestCheckDataframe(unittest.TestCase):
+
+    def test_wrong_data_type(self):
+        df = "anything"
+
+        with self.assertRaises(Exception) as context:
+            weedout.check_dataframe(df)
+
+        self.assertFalse(check_dataframe(df))
+        
 class TestInitialCheckDt(unittest.TestCase):
     def test_wrong_path(self):
         file_path = 'non_existent_file.csv'

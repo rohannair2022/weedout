@@ -16,6 +16,9 @@ from tqdm.notebook import tqdm
 from typing import List, Optional, Tuple
 import csv
 
+from scipy import stats
+from sklearn.utils import resample
+
 
 
 def check_target_variable(df: pd.DataFrame, target_name: str) -> bool:
@@ -69,13 +72,58 @@ def check_duplicate_columns(file_path: str) -> List[str]:
                     duplicates.add(header)
                 seen.add(header)
             
-            if duplicates:
-                return list(duplicates)
-            else:
-                return []
+            return list(duplicates)
+
     else:
         raise Exception('Wrong File Type. Only CSV allowed.')
 
+def remove_duplicate_columns(input_file: str, output_file: str) -> Tuple[List[str], List[str]]:
+    """
+    Removes duplicate columns from a CSV file and writes the cleaned data to a new CSV file.
+
+    Parameters:
+        input_file (str):
+            The path to the input CSV file that may contain duplicate columns.
+        output_file (str):
+            The path to the output CSV file where the cleaned data will be saved.
+
+    Returns:
+        Tuple[List[str], List[str]]:
+            A tuple where the first element is a list of duplicate column names that were removed,
+            and the second element is a list of unique column names kept in the output file.
+    
+    Raises:
+        Exception:
+            If the provided file is not a CSV file.
+    """
+    
+    # Proceed to remove duplicates if any are found
+    with open(input_file, mode='r', newline='') as infile:
+        reader = csv.reader(infile)
+        headers = next(reader)
+        
+        # Identifying unique columns
+        unique_columns = []
+        seen = set()
+        removed_columns = []
+        for i, header in enumerate(headers):
+            if header not in seen:
+                seen.add(header)
+                unique_columns.append(i)
+            else:
+                removed_columns.append(header)
+        
+        # Writing to the output file
+        with open(output_file, mode='w', newline='') as outfile:
+            writer = csv.writer(outfile)
+            # Write headers
+            writer.writerow([headers[i] for i in unique_columns])
+            
+            # Write the rest of the rows
+            for row in reader:
+                writer.writerow([row[i] for i in unique_columns])
+    
+    return removed_columns, [headers[i] for i in unique_columns]
 
 def initial_check_dt(file_path: str, target_variable: str, columns_to_drop: List[str]) -> Optional[pd.DataFrame]:
     """
@@ -106,7 +154,8 @@ def initial_check_dt(file_path: str, target_variable: str, columns_to_drop: List
         try:
             duplicate = check_duplicate_columns(file_path)
             if duplicate:
-                raise Exception("Duplicate columns exist in the file:", duplicate)
+                remove_duplicate_columns(file_path, "output.csv")
+                file_path = "output.csv"
             df = pd.read_csv(file_path)
         except pd.errors.ParserError:
             raise Exception('File cannot be parsed as a CSV.') from None
@@ -423,15 +472,19 @@ def feature_scaling(features: pd.DataFrame, unscale_columns: List[str]) -> pd.Da
     
     numerical_columns = df.select_dtypes(include=['float64', 'int64']).columns
     non_numerical_columns = df.select_dtypes(exclude=['float64', 'int64']).columns
-
-    def is_normal(column):
-        stat, p = stats.shapiro(column)
-        alpha = 0.05
-        if p > alpha:
-            return True
-        return False
-
     
+    
+    def is_normal(column):
+        if np.var(column) == 0:
+            print("Warning: Input data has zero variance. Normality tests are not applicable.")
+            return False
+        
+        subset = resample(column, n_samples=5000, random_state=42)
+        stat, p = stats.shapiro(subset)
+        alpha = 0.05
+        return p > alpha
+
+
     Minmaxscaler_algorithms = []
     Standardscaler_algorithms = []
 
