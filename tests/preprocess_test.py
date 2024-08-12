@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import weedout.preprocess as weedout
 
-lass TestCheckDataframe(unittest.TestCase):
+class TestCheckDataframe(unittest.TestCase):
 
     def test_wrong_data_type(self):
         df = "anything"
@@ -11,7 +11,9 @@ lass TestCheckDataframe(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             weedout.check_dataframe(df)
 
-        self.assertFalse(check_dataframe(df))lass TestCheckDataframe(unittest.TestCase):
+        self.assertFalse(check_dataframe(df))
+
+class TestCheckDataframe(unittest.TestCase):
 
     def test_wrong_data_type(self):
         df = "anything"
