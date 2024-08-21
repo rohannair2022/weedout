@@ -586,7 +586,7 @@ def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: Lis
 
     if sampling:
         if classfication:
-            if target.nunique() > 2:
+            if df[target_column].nunique() > 2:
                 print("\n-----------------------------Balancing Operations not suported for Multi-class Classification-----------------------------------------------\n")
             else:
                 if strategy_sample == "smote":            
@@ -610,7 +610,7 @@ def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: Lis
     print("\n-----------------------------Separated the input and output-----------------------------------------------\n")
     
     
-    if strategy_sample != "smote" or target.nunique() > 2:
+    if strategy_sample != "smote" or df[target_column].nunique() > 2:
         print("\nEncoding Data")
         remaining_df = encoding(remaining_df, untouched_columns)
         print("\n-----------------------------Encoded the data-----------------------------------------------\n")
