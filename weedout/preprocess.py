@@ -598,7 +598,7 @@ def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: Lis
                     df = handle_imbalanced_data(df, target_column, strategy_sample)
                     print("\n-----------------------------Balanced the data-----------------------------------------------\n")
         else:
-           print("\nBalancing Operations not suported for Regression Models")
+           print("\n-----------------------------Balancing Operations not suported for Regression Models-----------------------------------------------")
            print("\n-----------------------------Did not Balance the data-----------------------------------------------\n")
 
     print("\nRemoving Outliers")
