@@ -586,16 +586,19 @@ def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: Lis
 
     if sampling:
         if classfication:
-            if strategy_sample == "smote":            
-                print("\nHandling Imbalanced Data")
-                df = handle_imbalanced_data(df, target_column, strategy_sample, untouched_columns=untouched_columns)
-                print("\n-----------------------------Balanced and Encoded the data-----------------------------------------------\n")
+            if target.nunique() > 2:
+                print("\n-----------------------------Balancing Operations not suported for Multi-class Classification-----------------------------------------------\n")
             else:
-                print("\nHandling Imbalanced Data")
-                df = handle_imbalanced_data(df, target_column, strategy_sample)
-                print("\n-----------------------------Balanced the data-----------------------------------------------\n")
+                if strategy_sample == "smote":            
+                    print("\nHandling Imbalanced Data")
+                    df = handle_imbalanced_data(df, target_column, strategy_sample, untouched_columns=untouched_columns)
+                    print("\n-----------------------------Balanced and Encoded the data-----------------------------------------------\n")
+                else:
+                    print("\nHandling Imbalanced Data")
+                    df = handle_imbalanced_data(df, target_column, strategy_sample)
+                    print("\n-----------------------------Balanced the data-----------------------------------------------\n")
         else:
-           print("\nCant Balance a Dataset for Regression Models")
+           print("\nBalancing Operations not suported for Regression Models")
            print("\n-----------------------------Did not Balance the data-----------------------------------------------\n")
 
     print("\nRemoving Outliers")
@@ -607,7 +610,7 @@ def preprocess_pipeline(file_path: str, target_column: str, dropped_columns: Lis
     print("\n-----------------------------Separated the input and output-----------------------------------------------\n")
     
     
-    if strategy_sample != "smote":
+    if strategy_sample != "smote" or target.nunique() > 2:
         print("\nEncoding Data")
         remaining_df = encoding(remaining_df, untouched_columns)
         print("\n-----------------------------Encoded the data-----------------------------------------------\n")
