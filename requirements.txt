@@ -6,7 +6,6 @@ scikit-learn==1.2.2
 statsmodels==0.14.0
 imbalanced-learn==0.10.1
 scipy
-tqdm==4.65.0
 typing
 nose
 coverage

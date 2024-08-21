@@ -10,7 +10,6 @@ from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from scipy import stats
-from tqdm.notebook import tqdm
 from typing import List, Optional, Tuple
 from sklearn.utils import resample
 
